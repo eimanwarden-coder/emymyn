@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101326">
+<title>How Well Do You Know Eim? ♡</title>
+<style>
+  :root{
+    --bg:#101326; --panel:#1a1e38; --panel2:#222746; --text:#f7f5ff;
+    --muted:#b9bdd4; --pink:#ff8fbd; --purple:#a99bff; --line:rgba(255,255,255,.12);
+    --good:#8fe0bd; --bad:#ff8f9d;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; color:var(--text);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%,rgba(169,155,255,.19),transparent 30%),
+      radial-gradient(circle at 90% 85%,rgba(255,143,189,.14),transparent 28%),var(--bg);
+    display:grid; place-items:center; padding:24px 14px;
+  }
+  .wrap{width:min(100%,620px)}
+  .top{text-align:center;margin-bottom:20px}
+  .eyebrow{color:var(--pink);font-size:.75rem;letter-spacing:.22em;text-transform:uppercase;font-weight:800}
+  h1{font-size:clamp(2rem,8vw,3.2rem);line-height:1.05;margin:10px 0 8px;letter-spacing:-.055em}
+  h1 span{color:var(--pink)}
+  .subtitle{color:var(--muted);margin:0;font-size:.96rem}
+  .card{
+    background:linear-gradient(145deg,rgba(34,39,70,.96),rgba(25,29,54,.96));
+    border:1px solid var(--line); border-radius:26px; padding:clamp(20px,5vw,34px);
+    box-shadow:0 24px 70px rgba(0,0,0,.32); backdrop-filter:blur(12px);
+  }
+  .progress-row{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.82rem;font-weight:700;margin-bottom:11px}
+  .bar{height:8px;background:rgba(255,255,255,.09);border-radius:99px;overflow:hidden;margin-bottom:28px}
+  .fill{height:100%;width:0;background:linear-gradient(90deg,var(--purple),var(--pink));border-radius:99px;transition:width .3s ease}
+  .qtag{color:var(--purple);font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  h2{font-size:clamp(1.35rem,5vw,1.8rem);line-height:1.25;margin:10px 0 22px}
+  .answers{display:grid;gap:12px}
+  .answer{
+    width:100%;display:flex;gap:13px;align-items:center;text-align:left;
+    padding:16px;border:1px solid var(--line);border-radius:16px;
+    background:rgba(255,255,255,.045);color:var(--text);font-size:1rem;font-weight:650;
+    cursor:pointer;transition:.18s ease;
+  }
+  .answer:hover{transform:translateY(-2px);border-color:rgba(255,143,189,.65);background:rgba(255,143,189,.08)}
+  .letter{width:34px;height:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;background:rgba(169,155,255,.17);color:#c9c0ff;font-weight:900}
+  .answer:focus-visible,.restart:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
+  .result{text-align:center;padding:10px 0 2px}
+  .emoji{font-size:3.2rem;margin-bottom:8px}
+  .result h2{font-size:clamp(1.8rem,7vw,2.5rem);margin:8px 0 10px}
+  .result p{color:var(--muted);line-height:1.65;margin:8px auto;max-width:430px}
+  .score{display:inline-block;margin:16px 0 20px;padding:10px 18px;border:1px solid var(--line);border-radius:99px;background:rgba(255,255,255,.06);font-weight:800}
+  .restart{border:0;border-radius:14px;padding:14px 22px;background:linear-gradient(100deg,var(--purple),var(--pink));color:#17152a;font-size:1rem;font-weight:900;cursor:pointer;margin-top:12px}
+  .hidden{display:none}
+  .footer{text-align:center;color:#858aa8;font-size:.75rem;margin-top:17px}
+  .first-warning{color:#ffb4c3!important;font-weight:750}
+  @media(max-width:420px){.card{border-radius:21px}.answer{padding:14px}.subtitle{font-size:.88rem}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div class="eyebrow">a little friendship test</div>
+    <h1>How Well Do You<br><span>Know Eim?</span> ♡</h1>
+    <p class="subtitle">10 questions. Be honest… do you really know him?</p>
+  </header>
+
+  <section class="card" id="quizCard" aria-live="polite">
+    <div class="progress-row"><span id="counter">QUESTION 1 / 10</span><span id="scoreLabel">SCORE: 0</span></div>
+    <div class="bar"><div class="fill" id="progress"></div></div>
+    <div class="qtag" id="qtag">Let's see what you know</div>
+    <h2 id="question">Loading question...</h2>
+    <div class="answers" id="answers"></div>
+  </section>
+
+  <section class="card result hidden" id="resultCard" aria-live="polite">
+    <div class="emoji" id="resultEmoji">♡</div>
+    <div class="eyebrow">quiz completed</div>
+    <h2 id="resultTitle"></h2>
+    <p id="resultText"></p>
+    <div class="score" id="finalScore"></div>
+    <br>
+    <button class="restart" onclick="restartQuiz()">TRY AGAIN ↻</button>
+  </section>
+  <div class="footer">made with ♡ for Eim</div>
+</main>
+
+<script>
+const questions = [
+  {q:"Which engineering field is Eim interested in?", a:["Mechanical Engineering","Environmental Engineering"], correct:1},
+  {q:"What does Eim find most interesting about that field?", a:["Designing factory systems to reduce air pollution","Studying how to build roads and bridges"], correct:0},
+  {q:"What kind of technology does Eim want to help create?", a:["Machines powered mainly by fossil fuels","Machines that use clean energy"], correct:1},
+  {q:"Which science subject is usually Eim's weakest?", a:["Biology","Physics"], correct:0},
+  {q:"Which subject is Eim considering taking instead of Biology?", a:["Visual Arts","Prinsip Perakaunan"], correct:1},
+  {q:"Which subject combination has Eim considered for Form 4?", a:["Physics, Chemistry, Additional Mathematics and Prinsip Perakaunan","Biology, Sports Science, History and Geography"], correct:0},
+  {q:"Which school does Eim attend?", a:["MRSM Kuala Berang","MRSM Kuantan"], correct:0},
+  {q:"Who is the special person Eim has talked about a lot?", a:["Adni","Iris"], correct:1},
+  {q:"Which learning style has Eim asked about before?", a:["Visual learning","Learning only through music"], correct:0},
+  {q:"What is closest to Eim's big career goal?", a:["Designing technology and systems that help reduce environmental pollution","Designing luxury buildings with no environmental focus"], correct:0}
+];
+
+let current = 0;
+let score = 0;
+let locked = false;
+
+const quizCard = document.getElementById("quizCard");
+const resultCard = document.getElementById("resultCard");
+const questionEl = document.getElementById("question");
+const answersEl = document.getElementById("answers");
+const counterEl = document.getElementById("counter");
+const scoreLabel = document.getElementById("scoreLabel");
+const progressEl = document.getElementById("progress");
+const qtagEl = document.getElementById("qtag");
+
+function renderQuestion(){
+  locked = false;
+  const item = questions[current];
+  counterEl.textContent = `QUESTION ${current+1} / ${questions.length}`;
+  scoreLabel.textContent = `SCORE: ${score}`;
+  progressEl.style.width = `${(current/questions.length)*100}%`;
+  qtagEl.textContent = current === 0 ? "The make-or-break question..." : "Think carefully";
+  questionEl.textContent = item.q;
+  answersEl.innerHTML = "";
+  item.a.forEach((answer,index)=>{
+    const button = document.createElement("button");
+    button.className = "answer";
+    button.innerHTML = `<span class="letter">${index===0?"A":"B"}</span><span></span>`;
+    button.querySelector("span:last-child").textContent = answer;
+    button.addEventListener("click",()=>chooseAnswer(index));
+    answersEl.appendChild(button);
+  });
+}
+
+function chooseAnswer(choice){
+  if(locked) return;
+  locked = true;
+  const correct = choice === questions[current].correct;
+
+  if(current === 0 && !correct){
+    showResult("TAKYAH KAWAN LA 😭","Baru soalan pertama dah salah??? Eim pun awak tak kenal ke? Jangan claim kenal Eim dulu.",0,"😭",true);
+    return;
+  }
+
+  if(correct) score++;
+  current++;
+
+  if(current >= questions.length){
+    showFinalResult();
+  }else{
+    renderQuestion();
+  }
+}
+
+function showFinalResult(){
+  let title, message, emoji;
+  if(score <= 3){
+    title = "SUMPAH LAAA 😭";
+    message = "Awak kenal Eim ke sebenarnya? Banyak lagi kena belajar ni.";
+    emoji = "😭";
+  }else if(score <= 6){
+    title = "Kawan biasa je ni.";
+    message = "Boleh tahan… tapi ada banyak benda pasal Eim yang awak belum tahu.";
+    emoji = "🙂";
+  }else if(score <= 9){
+    title = "MY BEST FRIENDSSS 🤍";
+    message = "Okay, awak memang kenal Eim. Approved!";
+    emoji = "🤍";
+  }else{
+    title = "MANTAPPP SAYANG DIA ❤️";
+    message = "10/10?! Awak memang betul-betul kenal Eim. Respect!";
+    emoji = "❤️";
+  }
+  showResult(title,message,score,emoji,false);
+}
+
+function showResult(title,message,points,emoji,eliminated){
+  quizCard.classList.add("hidden");
+  resultCard.classList.remove("hidden");
+  document.getElementById("resultTitle").textContent = title;
+  document.getElementById("resultText").textContent = message;
+  document.getElementById("resultEmoji").textContent = emoji;
+  document.getElementById("finalScore").textContent = eliminated ? "QUIZ ENDED • 0 POINTS" : `YOUR SCORE: ${points} / 10`;
+  progressEl.style.width = eliminated ? "0%" : "100%";
+}
+
+function restartQuiz(){
+  current = 0;
+  score = 0;
+  locked = false;
+  resultCard.classList.add("hidden");
+  quizCard.classList.remove("hidden");
+  renderQuestion();
+}
+renderQuestion();
+</script>
+</body>
+</html>
